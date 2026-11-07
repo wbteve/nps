@@ -1,6 +1,7 @@
 package common
 
 import (
+	"github.com/astaxie/beego"
 	"bytes"
 	"ehang.io/nps/lib/version"
 	"encoding/base64"
@@ -408,16 +409,12 @@ func GetExtFromPath(path string) string {
 var externalIp string
 
 func GetExternalIp() string {
+	// 私有版改造：不再向第三方（myexternalip.com）查询公网地址，避免外联泄露。
+	// 如需显示公网地址，由配置项 external_ip 指定，未配置则返回空。
 	if externalIp != "" {
 		return externalIp
 	}
-	resp, err := http.Get("http://myexternalip.com/raw")
-	if err != nil {
-		return ""
-	}
-	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
-	externalIp = string(content)
+	externalIp = beego.AppConfig.DefaultString("external_ip", "")
 	return externalIp
 }
 

@@ -153,6 +153,9 @@ type release struct {
 }
 
 func downloadLatest(bin string) string {
+	// 私有版改造：禁止向开发者地址（api.github.com / ehang.io）拉取升级包，
+	// 一律改为从内部构建产物升级，避免版本上报与供应链风险。
+	log.Fatal("私有版已禁用在线升级，请使用内部构建产物替换二进制后重启")
 	// get version
 	data, err := http.Get("https://api.github.com/repos/ehang-io/nps/releases/latest")
 	if err != nil {

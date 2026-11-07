@@ -30,6 +30,19 @@ func InitAllowPort() {
 	ports = common.GetPorts(p)
 }
 
+// 私有版新增：高危端口黑名单，allow_ports 为空时默认拦截，
+// 防止客户端把 22、3389 这类管理端口直接映射到公网。
+var dangerousPorts = []int{22, 23, 135, 137, 138, 139, 445, 1433, 3306, 3389, 5432, 5900, 6379, 9200, 11211, 27017}
+
+func isDangerousPort(p int) bool {
+	for _, d := range dangerousPorts {
+		if d == p {
+			return true
+		}
+	}
+	return false
+}
+
 func TestServerPort(p int, m string) (b bool) {
 	if m == "p2p" || m == "secret" {
 		return true
@@ -41,6 +54,8 @@ func TestServerPort(p int, m string) (b bool) {
 		if !common.InIntArr(ports, p) {
 			return false
 		}
+	} else if isDangerousPort(p) && beego.AppConfig.DefaultBool("deny_dangerous_port", true) {
+		return false
 	}
 	if m == "udp" {
 		b = common.TestUdpPort(p)
