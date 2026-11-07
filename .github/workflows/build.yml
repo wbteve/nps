@@ -52,17 +52,26 @@ jobs:
           mkdir -p dist
           go build -trimpath -ldflags "-s -w" -o dist/npc${{ matrix.ext }} ./cmd/npc
 
-      - name: 打包
+      - name: 打包（服务端与客户端分开，避免混淆）
         run: |
-          cd dist
-          tar czf ../nps-npc_${{ matrix.suffix }}.tar.gz * || true
-          cd ..
-          ls -lh nps-npc_${{ matrix.suffix }}.tar.gz
+          ls -lh dist
+          tar czf nps-server_${{ matrix.suffix }}.tar.gz -C dist nps${{ matrix.ext }}
+          tar czf npc-client_${{ matrix.suffix }}.tar.gz -C dist npc${{ matrix.ext }}
+          echo "--- 校验包内文件 ---"
+          tar tzf nps-server_${{ matrix.suffix }}.tar.gz
+          tar tzf npc-client_${{ matrix.suffix }}.tar.gz
+          ls -lh *.tar.gz
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nps-npc_${{ matrix.suffix }}
-          path: nps-npc_${{ matrix.suffix }}.tar.gz
+          name: nps-server_${{ matrix.suffix }}
+          path: nps-server_${{ matrix.suffix }}.tar.gz
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npc-client_${{ matrix.suffix }}
+          path: npc-client_${{ matrix.suffix }}.tar.gz
           retention-days: 30
 
   release:
